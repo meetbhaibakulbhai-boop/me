@@ -1,0 +1,1032 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AmulyaDhara - AI Dairy Cooperative Supply Chain Platform | IBM Cloud & Granite LLM</title>
+    
+    <!-- Google Fonts & FontAwesome -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Outfit:wght@400;500;600;700;800&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Chart.js & Leaflet.js for Interactive Visualizations -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    
+    <style>
+        :root {
+            --bg-dark: #090D16;
+            --card-bg: rgba(18, 26, 43, 0.75);
+            --card-border: rgba(255, 255, 255, 0.08);
+            --ibm-blue: #0F62FE;
+            --ibm-cyan: #11C26D;
+            --accent-green: #10B981;
+            --accent-gold: #F59E0B;
+            --accent-red: #EF4444;
+            --accent-purple: #8B5CF6;
+            --text-main: #F3F4F6;
+            --text-muted: #9CA3AF;
+            --glass-glow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Inter', sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-dark);
+            background-image: 
+                radial-gradient(circle at 10% 20%, rgba(15, 98, 254, 0.15) 0%, transparent 40%),
+                radial-gradient(circle at 90% 80%, rgba(16, 185, 129, 0.12) 0%, transparent 40%);
+            color: var(--text-main);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* Top Navigation Header */
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1.25rem 2rem;
+            background: rgba(13, 19, 32, 0.85);
+            backdrop-filter: blur(16px);
+            border-bottom: 1px solid var(--card-border);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+
+        .logo-box {
+            display: flex;
+            align-items: center;
+            gap: 0.85rem;
+        }
+
+        .logo-icon {
+            width: 44px;
+            height: 44px;
+            background: linear-gradient(135deg, var(--ibm-blue), #0043CE);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.4rem;
+            color: white;
+            box-shadow: 0 0 15px rgba(15, 98, 254, 0.4);
+        }
+
+        .logo-title h1 {
+            font-family: 'Outfit', sans-serif;
+            font-size: 1.35rem;
+            font-weight: 700;
+            letter-spacing: -0.5px;
+            background: linear-gradient(90deg, #FFFFFF, #93C5FD);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .logo-title span {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+        }
+
+        .header-badges {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .badge-ibm {
+            background: rgba(15, 98, 254, 0.15);
+            border: 1px solid rgba(15, 98, 254, 0.4);
+            color: #60A5FA;
+            padding: 0.4rem 0.85rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+        }
+
+        .badge-live {
+            background: rgba(16, 185, 129, 0.15);
+            border: 1px solid rgba(16, 185, 129, 0.4);
+            color: #34D399;
+            padding: 0.4rem 0.85rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+        }
+
+        .pulse-dot {
+            width: 8px;
+            height: 8px;
+            background-color: var(--accent-green);
+            border-radius: 50%;
+            animation: pulse 1.8s infinite;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7); }
+            70% { transform: scale(1); box-shadow: 0 0 0 8px rgba(16, 185, 129, 0); }
+            100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
+        }
+
+        /* Layout Container & Sidebar Navigation */
+        .app-container {
+            display: grid;
+            grid-template-columns: 260px 1fr;
+            min-height: calc(100vh - 75px);
+        }
+
+        sidebar {
+            background: rgba(11, 16, 26, 0.9);
+            border-right: 1px solid var(--card-border);
+            padding: 1.5rem 1rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .nav-header {
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--text-muted);
+            margin: 1rem 0 0.5rem 0.75rem;
+            font-weight: 700;
+        }
+
+        .nav-btn {
+            display: flex;
+            align-items: center;
+            gap: 0.85rem;
+            padding: 0.85rem 1rem;
+            border-radius: 10px;
+            color: var(--text-muted);
+            background: transparent;
+            border: 1px solid transparent;
+            font-size: 0.9rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-align: left;
+            width: 100%;
+        }
+
+        .nav-btn:hover {
+            color: white;
+            background: rgba(255, 255, 255, 0.04);
+            border-color: rgba(255, 255, 255, 0.05);
+        }
+
+        .nav-btn.active {
+            color: white;
+            background: linear-gradient(90deg, rgba(15, 98, 254, 0.25), rgba(15, 98, 254, 0.05));
+            border: 1px solid rgba(15, 98, 254, 0.4);
+            box-shadow: 0 4px 12px rgba(15, 98, 254, 0.15);
+        }
+
+        .nav-btn i {
+            font-size: 1.1rem;
+            width: 20px;
+        }
+
+        /* Main Workspace View */
+        main {
+            padding: 2rem;
+            overflow-y: auto;
+        }
+
+        .view-section {
+            display: none;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .view-section.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(6px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .section-header {
+            margin-bottom: 1.75rem;
+        }
+
+        .section-header h2 {
+            font-family: 'Outfit', sans-serif;
+            font-size: 1.75rem;
+            font-weight: 700;
+            color: white;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .section-header p {
+            color: var(--text-muted);
+            font-size: 0.95rem;
+            margin-top: 0.35rem;
+        }
+
+        /* Dashboard KPI Cards Grid */
+        .kpi-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+            gap: 1.25rem;
+            margin-bottom: 2rem;
+        }
+
+        .kpi-card {
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 16px;
+            padding: 1.35rem;
+            backdrop-filter: blur(12px);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .kpi-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 3px;
+            background: linear-gradient(90deg, var(--ibm-blue), var(--accent-green));
+        }
+
+        .kpi-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.85rem;
+        }
+
+        .kpi-title {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            font-weight: 500;
+        }
+
+        .kpi-icon {
+            width: 36px;
+            height: 36px;
+            border-radius: 10px;
+            background: rgba(255, 255, 255, 0.05);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #60A5FA;
+        }
+
+        .kpi-value {
+            font-size: 1.8rem;
+            font-weight: 800;
+            font-family: 'Outfit', sans-serif;
+            color: white;
+            letter-spacing: -0.5px;
+        }
+
+        .kpi-sub {
+            margin-top: 0.5rem;
+            font-size: 0.8rem;
+            color: var(--accent-green);
+            display: flex;
+            align-items: center;
+            gap: 0.3rem;
+        }
+
+        /* Generic Glass Cards & Content Panels */
+        .grid-2col {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .panel-card {
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 16px;
+            padding: 1.5rem;
+            backdrop-filter: blur(12px);
+        }
+
+        .panel-title {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: white;
+            margin-bottom: 1rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        /* Map styling */
+        #routeMap {
+            height: 420px;
+            border-radius: 12px;
+            border: 1px solid var(--card-border);
+            z-index: 1;
+        }
+
+        /* Granular Agent Console / Code Box */
+        .console-box {
+            background: #060911;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            padding: 1.25rem;
+            font-family: 'Fira Code', monospace;
+            font-size: 0.85rem;
+            color: #34D399;
+            height: 340px;
+            overflow-y: auto;
+            white-space: pre-wrap;
+            line-height: 1.6;
+        }
+
+        .form-group {
+            margin-bottom: 1.25rem;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            margin-bottom: 0.4rem;
+            font-weight: 500;
+        }
+
+        .form-control {
+            width: 100%;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--card-border);
+            border-radius: 10px;
+            padding: 0.75rem 1rem;
+            color: white;
+            font-size: 0.95rem;
+            outline: none;
+            transition: all 0.2s;
+        }
+
+        .form-control:focus {
+            border-color: var(--ibm-blue);
+            box-shadow: 0 0 0 3px rgba(15, 98, 254, 0.25);
+        }
+
+        .btn-action {
+            background: linear-gradient(135deg, var(--ibm-blue), #0043CE);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            padding: 0.85rem 1.5rem;
+            font-size: 0.95rem;
+            font-weight: 600;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.6rem;
+            transition: all 0.2s ease;
+            box-shadow: 0 4px 15px rgba(15, 98, 254, 0.3);
+        }
+
+        .btn-action:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(15, 98, 254, 0.5);
+        }
+
+        /* Farmer Receipt Slip */
+        .slip-card {
+            background: linear-gradient(135deg, #111827, #1F2937);
+            border: 1px dashed rgba(255, 255, 255, 0.2);
+            border-radius: 14px;
+            padding: 1.5rem;
+            font-family: 'Inter', sans-serif;
+            color: #E5E7EB;
+        }
+
+        .slip-header {
+            text-align: center;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            padding-bottom: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .slip-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 0.6rem;
+            font-size: 0.9rem;
+        }
+
+        .slip-row.total {
+            font-size: 1.2rem;
+            font-weight: 800;
+            color: #34D399;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            padding-top: 0.8rem;
+            margin-top: 0.8rem;
+        }
+
+        .badge-status {
+            background: rgba(16, 185, 129, 0.2);
+            color: #34D399;
+            padding: 0.25rem 0.6rem;
+            border-radius: 6px;
+            font-size: 0.75rem;
+            font-weight: 700;
+        }
+
+        @media (max-width: 1024px) {
+            .app-container { grid-template-columns: 1fr; }
+            sidebar { display: none; }
+            .grid-2col { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Header -->
+    <header>
+        <div class="logo-box">
+            <div class="logo-icon">
+                <i class="fa-solid fa-cow"></i>
+            </div>
+            <div class="logo-title">
+                <h1>AmulyaDhara AI</h1>
+                <span>Dairy Co-Op Supply Chain Platform • Gujarat Hackathon 2026</span>
+            </div>
+        </div>
+        <div class="header-badges">
+            <div class="badge-ibm">
+                <i class="fa-brands fa-ibm"></i> Powered by IBM Granite LLM & IBM Cloud
+            </div>
+            <div class="badge-live">
+                <div class="pulse-dot"></div> 5 Agents Active
+            </div>
+        </div>
+    </header>
+
+    <div class="app-container">
+        <!-- Sidebar Navigation -->
+        <sidebar>
+            <div class="nav-header">Multi-Agent Ecosystem</div>
+            <button class="nav-btn active" onclick="switchTab('dashboard', this)">
+                <i class="fa-solid fa-chart-line"></i> 5-Agent Overview
+            </button>
+            <button class="nav-btn" onclick="switchTab('route-opt', this)">
+                <i class="fa-solid fa-route"></i> 1. Route Optimization
+            </button>
+            <button class="nav-btn" onclick="switchTab('fodder-agent', this)">
+                <i class="fa-solid fa-wheat-awn"></i> 2. Fodder Forecasting
+            </button>
+            <button class="nav-btn" onclick="switchTab('demand-supply', this)">
+                <i class="fa-solid fa-brain"></i> 3. IBM Granite Demand Agent
+            </button>
+            <button class="nav-btn" onclick="switchTab('farmer-payout', this)">
+                <i class="fa-solid fa-hand-holding-dollar"></i> 4. Farmer Payment Slip
+            </button>
+            <button class="nav-btn" onclick="switchTab('cloud-architecture', this)">
+                <i class="fa-solid fa-network-wired"></i> IBM Cloud Architecture
+            </button>
+        </sidebar>
+
+        <!-- Main Workspace -->
+        <main>
+            <!-- SECTION 1: OVERVIEW DASHBOARD -->
+            <div id="dashboard" class="view-section active">
+                <div class="section-header">
+                    <h2><i class="fa-solid fa-chart-pie" style="color: var(--ibm-blue);"></i> Cooperative Performance Dashboard Agent</h2>
+                    <p>Real-time macro operations across Anand, Mehsana, and Banaskantha Milk Unions.</p>
+                </div>
+
+                <div class="kpi-grid">
+                    <div class="kpi-card">
+                        <div class="kpi-top">
+                            <span class="kpi-title">Daily Milk Inflow</span>
+                            <div class="kpi-icon"><i class="fa-solid fa-fill-drip"></i></div>
+                        </div>
+                        <div class="kpi-value">2,450,000 L</div>
+                        <div class="kpi-sub"><i class="fa-solid fa-arrow-trend-up"></i> +4.2% vs yesterday</div>
+                    </div>
+                    <div class="kpi-card">
+                        <div class="kpi-top">
+                            <span class="kpi-title">Avg Fat / SNF Ratio</span>
+                            <div class="kpi-icon" style="color: var(--accent-gold);"><i class="fa-solid fa-flask"></i></div>
+                        </div>
+                        <div class="kpi-value">6.8% / 8.9%</div>
+                        <div class="kpi-sub" style="color: var(--accent-gold);"><i class="fa-solid fa-circle-check"></i> Grade A+ Premium Quality</div>
+                    </div>
+                    <div class="kpi-card">
+                        <div class="kpi-top">
+                            <span class="kpi-title">Daily Farmer Payouts</span>
+                            <div class="kpi-icon" style="color: var(--accent-green);"><i class="fa-solid fa-indian-rupee-sign"></i></div>
+                        </div>
+                        <div class="kpi-value">₹11.88 Cr</div>
+                        <div class="kpi-sub"><i class="fa-solid fa-bolt"></i> 100% DBT Transferred</div>
+                    </div>
+                    <div class="kpi-card">
+                        <div class="kpi-top">
+                            <span class="kpi-title">Tanker Route Efficiency</span>
+                            <div class="kpi-icon" style="color: var(--accent-purple);"><i class="fa-solid fa-gas-pump"></i></div>
+                        </div>
+                        <div class="kpi-value">94.2%</div>
+                        <div class="kpi-sub"><i class="fa-solid fa-leaf"></i> 1,420 L Diesel Saved Today</div>
+                    </div>
+                </div>
+
+                <div class="grid-2col">
+                    <div class="panel-card">
+                        <div class="panel-title">
+                            <span>Milk Collection Inflow by District Union</span>
+                            <i class="fa-solid fa-filter"></i>
+                        </div>
+                        <canvas id="unionInflowChart" height="220"></canvas>
+                    </div>
+                    <div class="panel-card">
+                        <div class="panel-title">
+                            <span>AI Product Allocation Breakdown (IBM Granite)</span>
+                            <i class="fa-solid fa-pie-chart"></i>
+                        </div>
+                        <canvas id="allocationPieChart" height="220"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SECTION 2: ROUTE OPTIMIZATION AGENT -->
+            <div id="route-opt" class="view-section">
+                <div class="section-header">
+                    <h2><i class="fa-solid fa-route" style="color: var(--accent-green);"></i> Milk Collection Route Optimization Agent</h2>
+                    <p>Dynamic vehicle routing algorithm (CVRPTW) for milk tankers connecting Village Societies to Bulk Milk Coolers (BMCs).</p>
+                </div>
+
+                <div class="grid-2col">
+                    <div class="panel-card">
+                        <div class="panel-title">
+                            <span>Gujarat Dairy Tanker Route Map (Live GIS)</span>
+                            <span class="badge-status">TSP / CVRP Active</span>
+                        </div>
+                        <div id="routeMap"></div>
+                    </div>
+                    <div class="panel-card">
+                        <div class="panel-title">
+                            <span>Active Route Details & Spoilage Prevention</span>
+                            <i class="fa-solid fa-truck-droplet"></i>
+                        </div>
+                        <div class="form-group">
+                            <label>Select Tanker Route</label>
+                            <select id="routeSelect" class="form-control" onchange="updateRouteMetrics()">
+                                <option value="AN-04">Route AN-04 (Anand - Mogar - Khatraj - Amul Fed)</option>
+                                <option value="ME-12">Route ME-12 (Mehsana - Visnagar - Kadi - Dudhsagar)</option>
+                                <option value="BK-08">Route BK-08 (Banaskantha - Palanpur - Deesa - Banas)</option>
+                            </select>
+                        </div>
+                        <div style="background: rgba(255,255,255,0.03); border-radius: 10px; padding: 1rem; margin-top: 1rem;">
+                            <div class="slip-row"><span>Total Tanker Stops:</span> <strong style="color:white;">6 VDCS Centers</strong></div>
+                            <div class="slip-row"><span>Total Milk Volume:</span> <strong style="color:white;" id="rVolume">14,200 Liters</strong></div>
+                            <div class="slip-row"><span>Estimated Travel Time:</span> <strong style="color:white;" id="rTime">2 hrs 14 mins</strong></div>
+                            <div class="slip-row"><span>Fuel Cost Savings:</span> <strong style="color:var(--accent-green);" id="rFuel">₹ 3,450 (28.4% reduction)</strong></div>
+                            <div class="slip-row"><span>Spoilage Risk Index:</span> <strong style="color:#34D399;" id="rRisk">0.02 (Optimal Cold Chain &lt; 4°C)</strong></div>
+                        </div>
+                        <button class="btn-action" style="margin-top: 1.25rem; width: 100%; justify-content: center;" onclick="reoptimizeRoute()">
+                            <i class="fa-solid fa-arrows-rotate"></i> Re-Calculate Optimal Route
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SECTION 3: FODDER PRICE FORECASTING AGENT -->
+            <div id="fodder-agent" class="view-section">
+                <div class="section-header">
+                    <h2><i class="fa-solid fa-wheat-awn" style="color: var(--accent-gold);"></i> Fodder Price Forecasting Agent</h2>
+                    <p>Predicting green fodder, dry fodder, and concentrate price trends across Gujarat Mandis using time-series forecasting & news sentiment.</p>
+                </div>
+
+                <div class="grid-2col">
+                    <div class="panel-card">
+                        <div class="panel-title">
+                            <span>30-Day Fodder Price Forecast (₹ / Quintal)</span>
+                            <i class="fa-solid fa-chart-line"></i>
+                        </div>
+                        <canvas id="fodderChart" height="240"></canvas>
+                    </div>
+                    <div class="panel-card">
+                        <div class="panel-title">
+                            <span>District Feed Alert & AI Advisory</span>
+                            <i class="fa-solid fa-bullhorn"></i>
+                        </div>
+                        <div class="form-group">
+                            <label>District Mandi Location</label>
+                            <select class="form-control" id="mandiLocation" onchange="updateFodderAdvisory()">
+                                <option value="anand">Anand & Kheda Mandi</option>
+                                <option value="banas">Banaskantha (Palanpur Mandi)</option>
+                                <option value="mehsana">Mehsana Mandi</option>
+                            </select>
+                        </div>
+                        <div class="console-box" id="fodderAdviceBox">
+[AI FODDER AGENT ANALYSIS - ANAND MANDI]
+- Green Fodder (Jowar/Maize): ₹ 380 / Qtl (Stable, +1.2%)
+- Dry Fodder (Wheat Straw): ₹ 840 / Qtl (Rising due to demand)
+- Cattle Concentrate (Cottonseed Cake): ₹ 2,450 / Qtl
+
+STRATEGIC AI RECOMMENDATION:
+* Monsoon rainfall projected above average in Kheda belt.
+* Advise farmers to procure 15-day dry fodder reserve before monsoon premium surge.
+* Union Cattle Feed Plant (Kanjari) subsidy dispatches active.
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SECTION 4: DEMAND-SUPPLY MATCHING AGENT (IBM GRANITE) -->
+            <div id="demand-supply" class="view-section">
+                <div class="section-header">
+                    <h2><i class="fa-solid fa-brain" style="color: var(--ibm-blue);"></i> Demand-Supply Matching Agent (IBM Granite LLM)</h2>
+                    <p>Dynamic product allocation engine using IBM Watsonx.ai `ibm/granite-3-8b-instruct` model.</p>
+                </div>
+
+                <div class="grid-2col">
+                    <div class="panel-card">
+                        <div class="panel-title">
+                            <span>Live Milk Inflow Simulator</span>
+                            <i class="fa-solid fa-sliders"></i>
+                        </div>
+                        <div class="form-group">
+                            <label>Daily Milk Collection Volume (Liters)</label>
+                            <input type="number" class="form-control" id="simVolume" value="2450000">
+                        </div>
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                            <div class="form-group">
+                                <label>Average Fat %</label>
+                                <input type="number" step="0.1" class="form-control" id="simFat" value="6.75">
+                            </div>
+                            <div class="form-group">
+                                <label>Average SNF %</label>
+                                <input type="number" step="0.1" class="form-control" id="simSNF" value="8.85">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label>Peak Regional Ambient Temp (°C)</label>
+                            <input type="number" class="form-control" id="simTemp" value="36.0">
+                        </div>
+                        <button class="btn-action" style="width: 100%; justify-content: center;" onclick="runGraniteAgent()">
+                            <i class="fa-brands fa-ibm"></i> Run IBM Granite Optimization LLM
+                        </button>
+                    </div>
+
+                    <div class="panel-card">
+                        <div class="panel-title">
+                            <span>IBM Granite-3.0 LLM Response Terminal</span>
+                            <span class="badge-ibm">watsonx.ai</span>
+                        </div>
+                        <div class="console-box" id="graniteTerminal">
+Click 'Run IBM Granite Optimization LLM' to trigger agent processing...
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SECTION 5: FARMER PAYMENT & TRANSPARENCY AGENT -->
+            <div id="farmer-payout" class="view-section">
+                <div class="section-header">
+                    <h2><i class="fa-solid fa-hand-holding-dollar" style="color: var(--accent-green);"></i> Farmer Payment & Transparency Agent</h2>
+                    <p>Transparent milk slip generation using Fat % x SNF % pricing formulas with instant Aadhaar DBT / UPI transfer.</p>
+                </div>
+
+                <div class="grid-2col">
+                    <div class="panel-card">
+                        <div class="panel-title">
+                            <span>Milk Pouring Slip Calculator</span>
+                            <i class="fa-solid fa-calculator"></i>
+                        </div>
+                        <div class="form-group">
+                            <label>Farmer ID / Name</label>
+                            <input type="text" class="form-control" id="fName" value="FARMER-9942 • Rameshbhai Patel">
+                        </div>
+                        <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 0.8rem;">
+                            <div class="form-group">
+                                <label>Quantity (L)</label>
+                                <input type="number" step="0.5" class="form-control" id="fLit" value="14.5" oninput="calculateSlip()">
+                            </div>
+                            <div class="form-group">
+                                <label>Fat %</label>
+                                <input type="number" step="0.1" class="form-control" id="fFat" value="6.8" oninput="calculateSlip()">
+                            </div>
+                            <div class="form-group">
+                                <label>SNF %</label>
+                                <input type="number" step="0.1" class="form-control" id="fSNF" value="8.9" oninput="calculateSlip()">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label>Payment Method</label>
+                            <select class="form-control">
+                                <option>Aadhaar Direct Benefit Transfer (DBT - Bank)</option>
+                                <option>Instant UPI (ramesh.patel@okaxis)</option>
+                            </select>
+                        </div>
+                        <button class="btn-action" style="width: 100%; justify-content: center;" onclick="dispatchPayment()">
+                            <i class="fa-solid fa-paper-plane"></i> Execute Instant DBT Payout & Send SMS
+                        </button>
+                    </div>
+
+                    <div class="panel-card">
+                        <div class="panel-title">
+                            <span>Digital Milk Slip & Transparency Receipt</span>
+                            <i class="fa-solid fa-receipt"></i>
+                        </div>
+                        <div class="slip-card" id="slipBox">
+                            <div class="slip-header">
+                                <h3 style="font-family:'Outfit'; color:white;">ANAND DISTRICT DAIRY CO-OP</h3>
+                                <div style="font-size: 0.8rem; color: #9CA3AF; margin-top: 0.2rem;">Mogar Village Society #102 • Daily Receipt</div>
+                            </div>
+                            <div class="slip-row"><span>Farmer Token:</span> <strong>FARMER-GUJ-9942</strong></div>
+                            <div class="slip-row"><span>Farmer Name:</span> <strong>Rameshbhai Patel</strong></div>
+                            <div class="slip-row"><span>Milk Volume:</span> <strong id="slipVol">14.50 Liters</strong></div>
+                            <div class="slip-row"><span>Fat % / SNF %:</span> <strong id="slipRatio">6.80% / 8.90%</strong></div>
+                            <div class="slip-row"><span>Calculated Rate / Liter:</span> <strong id="slipRate">₹ 49.50</strong></div>
+                            <div class="slip-row"><span>Quality Bonus (A+ Grade):</span> <strong style="color:var(--accent-green);">+ ₹ 1.00 / L</strong></div>
+                            <div class="slip-row total"><span>Total Amount Payable:</span> <span id="slipTotal">₹ 732.25</span></div>
+                            <div style="margin-top: 1rem; text-align: center;">
+                                <span class="badge-status" id="payoutBadge"><i class="fa-solid fa-circle-check"></i> DBT READY - Aadhaar Seeded</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SECTION 6: IBM CLOUD ARCHITECTURE & SCHEMAS -->
+            <div id="cloud-architecture" class="view-section">
+                <div class="section-header">
+                    <h2><i class="fa-solid fa-network-wired" style="color: var(--ibm-blue);"></i> IBM Cloud Architecture & JSON Schemas</h2>
+                    <p>Deployment roadmap and inter-agent communication specifications.</p>
+                </div>
+
+                <div class="grid-2col">
+                    <div class="panel-card">
+                        <div class="panel-title">
+                            <span>IBM Cloud Deployment Topology</span>
+                            <i class="fa-brands fa-ibm"></i>
+                        </div>
+                        <ul style="line-height: 2; font-size: 0.95rem; color: var(--text-muted); list-style: none;">
+                            <li><i class="fa-solid fa-server" style="color:var(--ibm-blue);"></i> <strong>IBM Watsonx.ai:</strong> Host Granite-3.0 LLM for demand forecasting & prompt processing.</li>
+                            <li><i class="fa-solid fa-cube" style="color:var(--accent-green);"></i> <strong>IBM Code Engine:</strong> Serverless container deployment of all 5 Agent microservices.</li>
+                            <li><i class="fa-solid fa-diagram-project" style="color:var(--accent-gold);"></i> <strong>IBM Event Streams:</strong> Apache Kafka data bus for streaming IoT collection events.</li>
+                            <li><i class="fa-solid fa-database" style="color:var(--accent-purple);"></i> <strong>IBM Cloudant DB:</strong> Partitioned NoSQL store for immutable milk receipts & logs.</li>
+                        </ul>
+                    </div>
+
+                    <div class="panel-card">
+                        <div class="panel-title">
+                            <span>Inter-Agent JSON Schema Inspector</span>
+                            <i class="fa-solid fa-code"></i>
+                        </div>
+                        <div class="console-box">
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "MilkCollectionBatchEvent",
+  "properties": {
+    "batch_id": { "type": "string" },
+    "route_id": { "type": "string" },
+    "farmers_collected": {
+      "type": "array",
+      "items": {
+        "properties": {
+          "farmer_id": { "type": "string" },
+          "quantity_liters": { "type": "number" },
+          "fat_percentage": { "type": "number" },
+          "snf_percentage": { "type": "number" }
+        }
+      }
+    }
+  }
+}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Interactive Scripting -->
+    <script>
+        // Tab switching logic
+        function switchTab(tabId, btn) {
+            document.querySelectorAll('.view-section').forEach(el => el.classList.remove('active'));
+            document.querySelectorAll('.nav-btn').forEach(el => el.classList.remove('active'));
+            document.getElementById(tabId).classList.add('active');
+            btn.classList.add('active');
+
+            if (tabId === 'route-opt' && !window.mapInitialized) {
+                setTimeout(initMap, 200);
+            }
+        }
+
+        // Initialize Charts
+        window.addEventListener('DOMContentLoaded', () => {
+            initCharts();
+        });
+
+        function initCharts() {
+            // Inflow Chart
+            const ctx1 = document.getElementById('unionInflowChart').getContext('2d');
+            new Chart(ctx1, {
+                type: 'bar',
+                data: {
+                    labels: ['Anand Union', 'Mehsana Union', 'Banaskantha', 'Sabarkantha', 'Kheda Union'],
+                    datasets: [{
+                        label: 'Milk Inflow (Liters)',
+                        data: [950000, 680000, 820000, 450000, 520000],
+                        backgroundColor: '#0F62FE',
+                        borderRadius: 6
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        x: { ticks: { color: '#9CA3AF' }, grid: { display: false } },
+                        y: { ticks: { color: '#9CA3AF' }, grid: { color: 'rgba(255,255,255,0.05)' } }
+                    }
+                }
+            });
+
+            // Pie Chart
+            const ctx2 = document.getElementById('allocationPieChart').getContext('2d');
+            new Chart(ctx2, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Pouch Milk', 'Butter & Ghee', 'Cheese Processing', 'SMP (Powder)'],
+                    datasets: [{
+                        data: [1250000, 450000, 300000, 450000],
+                        backgroundColor: ['#0F62FE', '#F59E0B', '#10B981', '#8B5CF6']
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: { legend: { position: 'bottom', labels: { color: '#F3F4F6' } } }
+                }
+            });
+
+            // Fodder Chart
+            const ctx3 = document.getElementById('fodderChart').getContext('2d');
+            new Chart(ctx3, {
+                type: 'line',
+                data: {
+                    labels: ['Week 1', 'Week 2', 'Week 3', 'Week 4 (Fcst)', 'Week 5 (Fcst)'],
+                    datasets: [
+                        { label: 'Green Fodder (₹/Qtl)', data: [360, 370, 380, 385, 390], borderColor: '#10B981', tension: 0.3 },
+                        { label: 'Dry Straw (₹/Qtl)', data: [780, 810, 840, 890, 920], borderColor: '#F59E0B', tension: 0.3 },
+                        { label: 'Cattle Feed (₹/Qtl)', data: [2400, 2420, 2450, 2480, 2500], borderColor: '#0F62FE', tension: 0.3 }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    plugins: { legend: { labels: { color: '#F3F4F6' } } },
+                    scales: {
+                        x: { ticks: { color: '#9CA3AF' }, grid: { color: 'rgba(255,255,255,0.05)' } },
+                        y: { ticks: { color: '#9CA3AF' }, grid: { color: 'rgba(255,255,255,0.05)' } }
+                    }
+                }
+            });
+        }
+
+        // Leaflet GIS Map Setup
+        function initMap() {
+            window.mapInitialized = true;
+            const map = L.map('routeMap').setView([22.5645, 72.9289], 10); // Centered at Anand, Gujarat
+
+            L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+                attribution: '&copy; OpenStreetMap &copy; CARTO',
+                maxZoom: 18
+            }).addTo(map);
+
+            // Coordinates for Dairy Nodes
+            const plant = [22.5645, 72.9289]; // Amul Plant, Anand
+            const mogar = [22.4930, 72.9460];
+            const khatraj = [22.6840, 72.8120];
+            const nadiad = [22.6916, 72.8634];
+
+            L.marker(plant).addTo(map).bindPopup('<b>Amul Dairy Processing Plant (Anand)</b>').openPopup();
+            L.marker(mogar).addTo(map).bindPopup('VDCS Mogar BMC');
+            L.marker(khatraj).addTo(map).bindPopup('VDCS Khatraj BMC');
+            L.marker(nadiad).addTo(map).bindPopup('VDCS Nadiad Center');
+
+            const routeCoords = [plant, mogar, nadiad, khatraj, plant];
+            L.polyline(routeCoords, { color: '#10B981', weight: 4, opacity: 0.8, dashArray: '8, 8' }).addTo(map);
+        }
+
+        // Dynamic Functions
+        function calculateSlip() {
+            const lit = parseFloat(document.getElementById('fLit').value) || 0;
+            const fat = parseFloat(document.getElementById('fFat').value) || 0;
+            const snf = parseFloat(document.getElementById('fSNF').value) || 0;
+
+            const baseRate = (fat * 5.2) + (snf * 1.6);
+            const total = lit * (baseRate + 1.0);
+
+            document.getElementById('slipVol').innerText = lit.toFixed(2) + " Liters";
+            document.getElementById('slipRatio').innerText = fat.toFixed(2) + "% / " + snf.toFixed(2) + "%";
+            document.getElementById('slipRate').innerText = "₹ " + baseRate.toFixed(2);
+            document.getElementById('slipTotal').innerText = "₹ " + total.toFixed(2);
+        }
+
+        function dispatchPayment() {
+            const total = document.getElementById('slipTotal').innerText;
+            const badge = document.getElementById('payoutBadge');
+            badge.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Processing DBT Transfer...`;
+            badge.style.background = "rgba(245, 158, 11, 0.2)";
+            badge.style.color = "#F59E0B";
+
+            setTimeout(() => {
+                badge.innerHTML = `<i class="fa-solid fa-check-double"></i> DBT TRANSFERRED (${total}) • UTR: DBT202607299841`;
+                badge.style.background = "rgba(16, 185, 129, 0.2)";
+                badge.style.color = "#34D399";
+                alert("Payment of " + total + " successfully sent via Aadhaar Direct Benefit Transfer! SMS receipt sent to farmer.");
+            }, 1200);
+        }
+
+        function runGraniteAgent() {
+            const box = document.getElementById('graniteTerminal');
+            const vol = document.getElementById('simVolume').value;
+            const fat = document.getElementById('simFat').value;
+            const snf = document.getElementById('simSNF').value;
+            const temp = document.getElementById('simTemp').value;
+
+            box.innerText = `[*] Connecting to IBM Watsonx.ai (Model: ibm/granite-3-8b-instruct)...\n[*] Analyzing Milk Inflow: ${vol}L | Fat: ${fat}% | SNF: ${snf}% | Temp: ${temp}°C\n...`;
+
+            setTimeout(() => {
+                box.innerText = JSON.stringify({
+                    "agent": "Demand-Supply Matching Agent (IBM Granite-3.0)",
+                    "status": "SUCCESS",
+                    "allocation_recommendation": {
+                        "fluid_milk_pouch_liters": Math.round(vol * 0.51),
+                        "butter_ghee_allocation_liters": Math.round(vol * 0.19),
+                        "cheese_processing_liters": Math.round(vol * 0.12),
+                        "skimmed_milk_powder_smp_liters": Math.round(vol * 0.18)
+                    },
+                    "granite_strategic_directives": [
+                        `High Fat content (${fat}%) detected. Allocate cream fraction to Ghee processing unit for maximum margin.`,
+                        `Ambient temp is ${temp}°C. Dispatch chillers immediately to Route AN-04 to avoid spoilage.`,
+                        `SMP drying plant initialized for ${Math.round(vol * 0.18)}L surplus.`
+                    ],
+                    "economic_impact": {
+                        "projected_daily_revenue_inr": (vol * 58.5).toLocaleString('en-IN'),
+                        "spoilage_risk_reduction_pct": "18.4%"
+                    }
+                }, null, 2);
+            }, 1000);
+        }
+
+        function updateRouteMetrics() {
+            const route = document.getElementById('routeSelect').value;
+            if (route === 'AN-04') {
+                document.getElementById('rVolume').innerText = "14,200 Liters";
+                document.getElementById('rTime').innerText = "2 hrs 14 mins";
+                document.getElementById('rFuel').innerText = "₹ 3,450 (28.4% reduction)";
+            } else if (route === 'ME-12') {
+                document.getElementById('rVolume').innerText = "18,500 Liters";
+                document.getElementById('rTime').innerText = "3 hrs 05 mins";
+                document.getElementById('rFuel').innerText = "₹ 4,120 (31.2% reduction)";
+            } else {
+                document.getElementById('rVolume').innerText = "22,100 Liters";
+                document.getElementById('rTime').innerText = "3 hrs 45 mins";
+                document.getElementById('rFuel').innerText = "₹ 5,200 (25.0% reduction)";
+            }
+        }
+
+        function reoptimizeRoute() {
+            alert("VRP Vehicle Routing Agent re-executed! Route optimized with dynamic traffic and temperature window.");
+        }
+
+        function updateFodderAdvisory() {
+            const mandi = document.getElementById('mandiLocation').value;
+            const box = document.getElementById('fodderAdviceBox');
+            if (mandi === 'banas') {
+                box.innerText = `[AI FODDER AGENT ANALYSIS - BANASKANTHA MANDI]\n- Green Fodder: ₹ 340 / Qtl\n- Dry Straw (Wheat): ₹ 910 / Qtl (Surge due to summer scarcity)\n- Cottonseed Cake: ₹ 2,520 / Qtl\n\nADVISORY: Palanpur area facing fodder deficit. Banas Union subsidy feed dispatches deployed.`;
+            } else if (mandi === 'mehsana') {
+                box.innerText = `[AI FODDER AGENT ANALYSIS - MEHSANA MANDI]\n- Green Fodder: ₹ 365 / Qtl\n- Dry Straw: ₹ 860 / Qtl\n- Concentrates: ₹ 2,480 / Qtl\n\nADVISORY: Stable supply. Advise farmers to maintain standard feed ratio (60% green / 40% dry).`;
+            } else {
+                box.innerText = `[AI FODDER AGENT ANALYSIS - ANAND MANDI]\n- Green Fodder (Jowar/Maize): ₹ 380 / Qtl (Stable, +1.2%)\n- Dry Fodder (Wheat Straw): ₹ 840 / Qtl\n- Cattle Concentrate: ₹ 2,450 / Qtl\n\nADVISORY: Kheda monsoon prep active. Procure 15-day dry fodder reserve.`;
+            }
+        }
+    </script>
+</body>
+</html>
